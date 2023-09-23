@@ -1,0 +1,10 @@
+/* Adjust the size of pagination links */
+.pagination {
+    font-size: 0.875rem; /* Adjust the font size as needed */
+}
+
+/* Remove the extra big arrows */
+.pagination .pagination-previous,
+.pagination .pagination-next {
+    font-size: inherit;
+}

@@ -1,0 +1,135 @@
+@extends('layouts.dash')
+
+@section('content')
+<div class="middle-sidebar-left">
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card border-0 mb-0 rounded-lg overflow-hidden live-stream bg-image-center bg-image-cover">
+                <div class="card-body d-flex justify-content-start p-2 position-absolute top-0 w-100">
+                    <!-- Video Player with Increased Height -->
+                    <video id="videoPlayer" controls width="100%" height="400">
+                        <source src="" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="video-controls">
+                <button id="playPauseBtn">Play</button>
+                <input id="volumeControl" type="range" min="0" max="1" step="0.1" value="1">
+                <span id="currentTime">0:00</span>
+                <progress id="progressBar" value="0" max="100"></progress>
+                <span id="duration">0:00</span>
+            </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <div class="col-xl-5 col-xxl-4">
+            <div class="card d-block border-0 rounded-lg overflow-hidden mt-2">
+                <h3 class="mb-0 p-4"><b>Course Content</b></h3>
+                <div id="accordion" class="accordion mb-0">
+                    <!-- Loop through syllabus titles for all courses -->
+                    @foreach ($course->syllabusTitles as $syllabusTitle)
+                    <div class="card shadow-xss mb-0">
+                        <div class="card-header bg-greylight theme-dark-bg" id="heading{{ $syllabusTitle->id }}">
+                            <h5 class="mb-0">
+                                <button class="btn font-xsss fw-600 btn-link" data-toggle="collapse" data-target="#collapseSyllabus{{ $syllabusTitle->id }}" aria-expanded="false" aria-controls="collapseSyllabus{{ $syllabusTitle->id }}">
+                                    {{ $syllabusTitle->title }}
+                                </button>
+                            </h5>
+                        </div>
+                        <div id="collapseSyllabus{{ $syllabusTitle->id }}" class="collapse p-3" aria-labelledby="heading{{ $syllabusTitle->id }}" data-parent="#accordion">
+                            <div class="card-body">
+                                <!-- Loop through subtitles for this syllabus title -->
+                                @foreach ($syllabusTitle->coursesubtopic as $subtitle)
+                                <div class="card shadow-xss mb-0">
+                                    <div class="card-header bg-greylight theme-dark-bg" id="headingSubtitle{{ $syllabusTitle->id }}-{{ $subtitle->id }}">
+                                        <h5 class="mb-0">
+                                            <button class="btn font-xsss fw-600 btn-link" data-toggle="collapse" data-target="#collapseSubtitle{{ $syllabusTitle->id }}-{{ $subtitle->id }}" aria-expanded="false" aria-controls="collapseSubtitle{{ $syllabusTitle->id }}-{{ $subtitle->id }}">
+                                                {{ $subtitle->title }}
+                                            </button>
+                                        </h5>
+                                    </div>
+                                    <div id="collapseSubtitle{{ $syllabusTitle->id }}-{{ $subtitle->id }}" class="collapse p-3" aria-labelledby="headingSubtitle{{ $syllabusTitle->id }}-{{ $subtitle->id }}" data-parent="#collapseSyllabus{{ $syllabusTitle->id }}">
+                                        <div class="card-body">
+                                            <!-- Loop through videos for this subtitle -->
+
+                                            @php
+                                            $count = 1; // Initialize the count outside the loop
+                                            @endphp
+
+                                            @foreach ($subtitle->videos as $video)
+                                            <div class="card-body d-flex p-2">
+    <span class="bg-current btn-round-xs rounded-lg font-xssss text-white fw-600">{{ $count }}</span>
+    <!-- Add a data attribute with the video file path to the video title -->
+    <span class="font-xssss fw-500 text-grey-500 ml-2 video-title" data-video-path="{{ asset('storage/' . substr($video->file_path, 7)) }}">{{ $video->title }}</span>
+    <!-- Add a unique identifier for each video duration element -->
+    <span class="ml-auto font-xssss fw-500 text-grey-500 video-duration" id="video-duration-{{ $count }}">44</span>
+</div>
+
+                                            @php
+                                            $count++; // Increment the count for the next video
+                                            @endphp
+                                            @endforeach
+
+
+
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const videoPlayer = document.getElementById('videoPlayer');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const volumeControl = document.getElementById('volumeControl');
+    const currentTime = document.getElementById('currentTime');
+    const progressBar = document.getElementById('progressBar');
+    const duration = document.getElementById('duration');
+
+    playPauseBtn.addEventListener('click', () => {
+        if (videoPlayer.paused) {
+            videoPlayer.play();
+            playPauseBtn.textContent = 'Pause';
+        } else {
+            videoPlayer.pause();
+            playPauseBtn.textContent = 'Play';
+        }
+    });
+
+    volumeControl.addEventListener('input', () => {
+        videoPlayer.volume = volumeControl.value;
+    });
+
+    videoPlayer.addEventListener('timeupdate', () => {
+        const minutes = Math.floor(videoPlayer.currentTime / 60);
+        const seconds = Math.floor(videoPlayer.currentTime % 60);
+        currentTime.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+        const progress = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+        progressBar.value = progress;
+    });
+
+    progressBar.addEventListener('input', () => {
+        const seekTime = (progressBar.value / 100) * videoPlayer.duration;
+        videoPlayer.currentTime = seekTime;
+    });
+
+    videoPlayer.addEventListener('loadedmetadata', () => {
+        const minutes = Math.floor(videoPlayer.duration / 60);
+        const seconds = Math.floor(videoPlayer.duration % 60);
+        duration.textContent = `${minutes}:${seconds}`;
+    });
+</script>
+
+@endsection
